@@ -1,0 +1,79 @@
+apiVersion: v1
+data:
+  haproxy.cfg: |-
+    global
+      log 127.0.0.1 local0 
+      maxconn 100
+      pidfile /run/haproxy.pid
+    
+    defaults
+      log	global
+      mode	http
+      option	httplog
+      option	dontlognull
+      timeout connect 5000
+      timeout client  50000
+      timeout server  50000
+
+    frontend k8s-http-api
+      bind 0.0.0.0:8087
+      option forwardfor
+   
+      acl local_net src 192.168.100.0/24
+      acl vaild_ip src -f /etc/haproxy/white.ip.lst
+      acl hbs_ip src 1.189.209.20
+
+      http-request allow if vaild_ip || hbs_ip || local_net
+      http-request deny
+
+    default_backend k8s-http-api
+  
+      backend k8s-http-api
+      balance roundrobin
+      option forwardfor
+      server k8s-http-api-1 192.168.100.161:8080 check
+      server k8s-http-api-2 192.168.100.162:8080 check
+      server k8s-http-api-3 192.168.100.163:8080 check
+    
+    frontend ingress-controller 
+      bind 0.0.0.0:8086
+      option forwardfor
+    
+      acl local_net src 192.168.100.0/24
+      acl vaild_ip src -f /etc/haproxy/white.ip.lst
+      acl hbs_ip src 1.189.209.20
+
+      http-request allow if vaild_ip || hbs_ip || local_net
+      http-request deny
+    
+      default_backend ingress-controller
+
+    backend ingress-controller 
+      balance roundrobin
+      option forwardfor
+      #server ingress-controller-node-1 172.31.78.215:80 check
+      #server ingress-controller-node-2 172.31.78.216:80 check
+      #server ingress-controller-node-3 172.31.78.217:80 check
+      server ingress-controller-svc 10.254.0.80:80 check
+      
+    listen stats
+      bind    *:9000
+      mode    http
+      stats   enable
+      stats   hide-version
+      stats   uri       /stats
+      stats   refresh   30s
+      stats   realm     Haproxy\ Statistics
+      stats   auth      haproxy:haproxy
+  test.lst: |-
+    1.189.209.20
+    123.166.192.241
+  watch.lst: haproxy.cfg white.ip.lst test.lst
+  white.ip.lst: |-
+    123.166.44.97
+    123.166.210.10
+    123.166.222.155
+kind: ConfigMap
+metadata:
+  name: haproxy-config
+  namespace: filtre

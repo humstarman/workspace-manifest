@@ -1,0 +1,25 @@
+apiVersion: v1
+data:
+  haproxy.cfg:
+  test.lst: |-
+    123.165.100.138
+    1.189.209.22
+    222.89.175.177
+    123.166.192.241
+  watch.lst: haproxy.cfg white.ip.lst test.lst
+  white.ip.lst: |-
+    123.165.100.138
+    123.165.98.107
+    123.166.221.145
+    123.166.192.241
+    123.166.221.15
+    123.166.223.29
+    123.166.44.97
+kind: ConfigMap
+metadata:
+  creationTimestamp: 2018-04-18T01:59:28Z
+  name: haproxy-config
+  namespace: filtre
+  resourceVersion: "109364"
+  selfLink: /api/v1/namespaces/filtre/configmaps/haproxy-config
+  uid: 207c0f33-42ac-11e8-8168-00163e06b02d
