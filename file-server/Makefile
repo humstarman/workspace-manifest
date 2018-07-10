@@ -17,7 +17,7 @@ push:
 	@docker push $(LOCAL_REGISTRY)/$(NAME):$(TAG)
 
 pull:
-	-@ansible $(TARGET_NODE) -m shell -a "docker pull $(LOCAL_REGISTRY)/$(NAME):$(TAG)"
+	-@ansible $(TARGET_NODE) -m shell -a "docker pull $(LOCAL_REGISTRY)/$(NAME):$(TAG); mkdir -p $(SHARED)"
 
 run:
 	@docker run -d --network host -v $(SHARED):/mnt --name $(NAME) $(LOCAL_REGISTRY)/$(NAME):$(TAG) /file-server -p=$(PORT)
