@@ -19,7 +19,7 @@ pull:
 deploy:
 	@yes | cp ./manifest/daemonset.yaml.sed ./manifest/daemonset.yaml
 	@sed -i s?"{{.image}}"?"$(IMAGE)"?g ./manifest/daemonset.yaml 
-	@kubectl create -f ./manifest/namespace.yaml
+	-@kubectl create -f ./manifest/namespace.yaml
 	@kubectl create -f ./manifest/configmap.yaml
 	@kubectl create -f ./manifest/daemonset.yaml
 

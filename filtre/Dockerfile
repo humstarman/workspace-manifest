@@ -1,2 +1,2 @@
 FROM haproxy:latest 
-ADD liveness-probe.sh / 
+ADD ./scripts/liveness-probe.sh / 
