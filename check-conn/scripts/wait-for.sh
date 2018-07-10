@@ -46,14 +46,16 @@ for TMP in $(seq -s ' ' 1 ${LOOPS}); do
   N2=0
   for i in $(seq -s ' ' $[1+1] $[$N+1]); do
     GROUP=$(echo $INFO | awk -F "$DS" -v j=$i '{print $j}')
-    if ! echo $GROUP | grep '<none>' >/dev/null 2>&1; then
+    if echo $GROUP | grep -v '<none>' | grep 'Running' >/dev/null 2>&1; then
       N2=$[$N2+1]
     fi
   done
   if [[ "$N2" == "$N" ]]; then 
+    echo "$(date -d today +'%Y-%m-%d %H:%M:%S') - [INFO] - $DS started."
     exit 0
   else
     sleep $SLEEP
   fi
 done
+echo "$(date -d today +'%Y-%m-%d %H:%M:%S') - [ERROR] - $DS failed !!!"
 exit 1

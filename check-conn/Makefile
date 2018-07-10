@@ -6,21 +6,21 @@ IMAGE=$(IMAGE_NAME):$(TAG)
 DS=$(IMAGE_NAME)-$(DS_SUFFIX)
 
 build:
-	@yes | cp ./daemonset.yaml.sed ./daemonset.yaml
-	@sed -i s?"{{.image}}"?"$(IMAGE)"?g daemonset.yaml
-	@sed -i s?"{{.ds}}"?"$(DS)"?g daemonset.yaml
+	@yes | cp ./manifest/daemonset.yaml.sed ./manifest/daemonset.yaml
+	@sed -i s?"{{.image}}"?"$(IMAGE)"?g ./manifest/daemonset.yaml
+	@sed -i s?"{{.ds}}"?"$(DS)"?g ./manifest/daemonset.yaml
 
 deploy:
-	@kubectl create -f ./daemonset.yaml
+	@kubectl create -f ./manifest/daemonset.yaml
 
 run:
-	@./check-conn.sh -d $(DS)
+	@./scripts/check-conn.sh -d $(DS)
 
 check:
-	@./wait-for.sh -d $(DS)
+	@./scripts/wait-for.sh -d $(DS)
 
 clean:
-	@kubectl delete -f ./daemonset.yaml
-	@rm -f ./daemonset.yaml
+	@kubectl delete -f ./manifest/daemonset.yaml
+	@rm -f ./manifest/daemonset.yaml
 
 all: build deploy check run clean
