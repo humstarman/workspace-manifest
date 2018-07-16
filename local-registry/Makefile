@@ -6,6 +6,11 @@ REGISTRY_PATH=/var/lib/docker/registry
 LOCAL_REGISTRY=${CLUSTER_IP}:${PORT}
 TMP=tmp
 
+check:
+	@./scripts/mk-ansible-hosts.sh -i ${IP} -g ${TMP} -o
+	@ansible ${TMP} -m ping 
+	@./scripts/rm-ansible-group.sh -g ${TMP}
+
 sed:
 	@yes | cp ./manifest/service.yaml.sed ./manifest/service.yaml
 	@yes | cp ./manifest/endpoint.yaml.sed ./manifest/endpoint.yaml
@@ -51,6 +56,6 @@ test1:
 clean_test:
 	@kubectl delete -f ./test/test-claim.yaml -f ./test/test-pod.yaml
 
-all: run sed deploy 
+all: check run sed deploy 
 
 link: sed deploy
