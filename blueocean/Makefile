@@ -11,12 +11,16 @@ NAMESPACE="gitlab"
 HA_METHOD="vip"
 #HA_METHOD="nigix"
 PV="false"
+#PV:="true"
+PV_METHOD="nfs"
+PV_CAPACITY="10"
 OUTPUT="./manifest/controller.yaml.sed"
+URL="gmt.blue.me"
 
 IMAGE=${LOCAL_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
 ARGS="-a ${HA_METHOD} -o ${OUTPUT}"
 ifeq (${PV},"true")
-ARGS+=" -p"
+ARGS+=" -p -m ${PV_METHOD} -c ${PV_CAPACITY}"
 endif
 ifeq (${HA_METHOD},"nginx")
 MASTER_IP_1=1
@@ -26,7 +30,7 @@ endif
 
 test:
 ifeq (${PV},"true")
-	@echo okay
+	@echo ${ARGS}
 else
 	@echo ${ARGS}
 endif
@@ -49,6 +53,7 @@ sed:
 	@sed -i s?"{{.namespace}}"?"${NAMESPACE}"?g ./manifest/service.yaml
 	@sed -i s?"{{.name}}"?"${NAME}"?g ./manifest/ingress.yaml
 	@sed -i s?"{{.namespace}}"?"${NAMESPACE}"?g ./manifest/ingress.yaml
+	@sed -i s?"{{.url}}"?"${URL}"?g ./manifest/ingress.yaml
 ifeq (${HA_METHOD},"nginx")
 	@yes | cp ./manifest/configmap.yaml.sed ./manifest/configmap.yaml
 	@sed -i s?"{{.namespace}}"?"${NAMESPACE}"?g ./manifest/configmap.yaml
@@ -66,6 +71,11 @@ endif
 	@sed -i s?"{{.image}}"?"${IMAGE}"?g ./manifest/controller.yaml
 	@sed -i s?"{{.kubectl.binary.path}}"?"${KUBECTL_BINARY_PATH}"?g ./manifest/controller.yaml
 	@sed -i s?"{{.kubectl.config.path}}"?"${KUBECTL_CONFIG_PATH}"?g ./manifest/controller.yaml
+ifeq (${PV},"true")
+	@sed -i s?"{{.name}}"?"${NAME}"?g ./manifest/volume.yaml
+	@sed -i s?"{{.namespace}}"?"${NAMESPACE}"?g ./manifest/volume.yaml
+	@sed -i s?"{{.pv.capacity}}"?"${PV_CAPACITY}"?g ./manifest/volume.yaml
+endif
 
 deploy:
 	-@kubectl create -f ./manifest/namespace.yaml

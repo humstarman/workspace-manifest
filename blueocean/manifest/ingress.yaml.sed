@@ -5,7 +5,7 @@ metadata:
   namespace: {{.namespace}}
 spec:
   rules:
-  - host: gmt.blue.me
+  - host: {{.url}} 
     http:
       paths:
       - path: /
