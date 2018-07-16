@@ -1,4 +1,4 @@
-LOCAL_REGISTRY_IP=192.168.100.167
+LOCAL_REGISTRY_IP=10.254.0.50
 LOCAL_REGISTRY_PORT=5000
 IMAGE_NAME=haproxy
 TAG=latest
@@ -26,7 +26,7 @@ deploy:
 test:
 	@sed s?"{{.image}}"?"$(IMAGE)"?g ./manifest/daemonset.yaml 
 
-all: build push pull deploy
+all: build push deploy
 
 clean:
 	@kubectl delete -f ./manifest/namespace.yaml

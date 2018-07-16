@@ -70,9 +70,7 @@ data:
     123.166.192.241
   watch.lst: haproxy.cfg white.ip.lst test.lst
   white.ip.lst: |-
-    123.166.44.97
-    123.166.210.10
-    123.166.222.155
+    123.166.205.24
 kind: ConfigMap
 metadata:
   name: haproxy-config

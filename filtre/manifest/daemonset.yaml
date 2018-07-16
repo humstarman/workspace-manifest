@@ -19,7 +19,7 @@ spec:
       restartPolicy: Always
       containers:
         - name: haproxy-node
-          image: 192.168.100.167:5000/haproxy:latest
+          image: 10.254.0.50:5000/haproxy:latest
           command:
             - haproxy
             - -f
