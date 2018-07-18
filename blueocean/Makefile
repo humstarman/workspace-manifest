@@ -44,59 +44,38 @@ push:
 pull:
 	-@ansible ${ANSIBLE_GROUP} -m shell -a "docker pull ${IMAGE}"
 
-sed:
-	@yes | cp ./manifest/namespace.yaml.sed ./manifest/namespace.yaml
-	@yes | cp ./manifest/service.yaml.sed ./manifest/service.yaml
-	@yes | cp ./manifest/ingress.yaml.sed ./manifest/ingress.yaml
-	@sed -i s?"{{.namespace}}"?"${NAMESPACE}"?g ./manifest/namespace.yaml
-	@sed -i s?"{{.name}}"?"${NAME}"?g ./manifest/service.yaml
-	@sed -i s?"{{.namespace}}"?"${NAMESPACE}"?g ./manifest/service.yaml
-	@sed -i s?"{{.name}}"?"${NAME}"?g ./manifest/ingress.yaml
-	@sed -i s?"{{.namespace}}"?"${NAMESPACE}"?g ./manifest/ingress.yaml
-	@sed -i s?"{{.url}}"?"${URL}"?g ./manifest/ingress.yaml
-ifeq (${HA_METHOD},"nginx")
-	@yes | cp ./manifest/configmap.yaml.sed ./manifest/configmap.yaml
-	@sed -i s?"{{.namespace}}"?"${NAMESPACE}"?g ./manifest/configmap.yaml
-	@sed -i s?"{{.kube-apiserver.secure.port}}"?"${KUBE_API_SECURE_PORT}"?g ./manifest/configmap.yaml
-	@sed -i s?"{{.master.ip.1}}"?"${MASTER_IP_1}"?g ./manifest/configmap.yaml
-	@sed -i s?"{{.master.ip.2}}"?"${MASTER_IP_2}"?g ./manifest/configmap.yaml
-	@sed -i s?"{{.master.ip.3}}"?"${MASTER_IP_3}"?g ./manifest/configmap.yaml
-endif
+cp:
 	@./scripts/mk-template.sh "${ARGS}"
-	@yes | cp ./manifest/controller.yaml.sed ./manifest/controller.yaml
-	@sed -i s?"{{.name}}"?"${NAME}"?g ./manifest/controller.yaml
-	@sed -i s?"{{.namespace}}"?"${NAMESPACE}"?g ./manifest/controller.yaml
-	@sed -i s?"{{.kube-apiserver.secure.port}}"?"${KUBE_API_SECURE_PORT}"?g ./manifest/controller.yaml
-	@sed -i s?"{{.kube-apiserver.insecure.port}}"?"${KUBE_API_INSECURE_PORT}"?g ./manifest/controller.yaml
-	@sed -i s?"{{.image}}"?"${IMAGE}"?g ./manifest/controller.yaml
-	@sed -i s?"{{.kubectl.binary.path}}"?"${KUBECTL_BINARY_PATH}"?g ./manifest/controller.yaml
-	@sed -i s?"{{.kubectl.config.path}}"?"${KUBECTL_CONFIG_PATH}"?g ./manifest/controller.yaml
-ifeq (${PV},"true")
-	@sed -i s?"{{.name}}"?"${NAME}"?g ./manifest/volume.yaml
-	@sed -i s?"{{.namespace}}"?"${NAMESPACE}"?g ./manifest/volume.yaml
-	@sed -i s?"{{.pv.capacity}}"?"${PV_CAPACITY}"?g ./manifest/volume.yaml
-endif
+	@find ./manifest -type f -name "*.sed" | sed s?".sed"?""?g | xargs -I {} cp {}.sed {}
+
+sed:
+	@find ./manifest -type f -name "*.yaml" | xargs sed -i s?"{{.name}}"?"${NAME}"?g
+	@find ./manifest -type f -name "*.yaml" | xargs sed -i s?"{{.url}}"?"${URL}"?g
+	@find ./manifest -type f -name "*.yaml" | xargs sed -i s?"{{.namespace}}"?"${NAMESPACE}"?g
+	@find ./manifest -type f -name "*.yaml" | xargs sed -i s?"{{.cluster.ip}}"?"${CLUSTER_IP}"?g
+	@find ./manifest -type f -name "*.yaml" | xargs sed -i s?"{{.master.ip.1}}"?"${MASTER_IP_1}"?g 
+	@find ./manifest -type f -name "*.yaml" | xargs sed -i s?"{{.master.ip.2}}"?"${MASTER_IP_2}"?g 
+	@find ./manifest -type f -name "*.yaml" | xargs sed -i s?"{{.master.ip.3}}"?"${MASTER_IP_3}"?g 
+	@find ./manifest -type f -name "*.yaml" | xargs sed -i s?"{{.kube-apiserver.secure.port}}"?"${KUBE_API_SECURE_PORT}"?g 
+	@find ./manifest -type f -name "*.yaml" | xargs sed -i s?"{{.kube-apiserver.insecure.port}}"?"${KUBE_API_INSECURE_PORT}"?g 
+	@find ./manifest -type f -name "*.yaml" | xargs sed -i s?"{{.image}}"?"${IMAGE}"?g
+	@find ./manifest -type f -name "*.yaml" | xargs sed -i s?"{{.kubectl.binary.path}}"?"${KUBECTL_BINARY_PATH}"?g
+	@find ./manifest -type f -name "*.yaml" | xargs sed -i s?"{{.kubectl.config.path}}"?"${KUBECTL_CONFIG_PATH}"?g
+	@find ./manifest -type f -name "*.yaml" | xargs sed -i s?"{{.pv.capacity}}"?"${PV_CAPACITY}"?g
 
 deploy:
 	-@kubectl create -f ./manifest/namespace.yaml
-	-@kubectl create -f ./manifest/service.yaml
-	-@kubectl create -f ./manifest/ingress.yaml
+	-@kubectl create -f ./manifest/deploy/service.yaml
 ifeq (${HA_METHOD},"nginx")
-	-@kubectl create -f ./manifest/configmap.yaml
+	-@kubectl create -f ./manifest/deploy/configmap.yaml
 endif
-	@kubectl create -f ./manifest/controller.yaml
+	@kubectl create -f ./manifest/deploy/controller.yaml
 
-all: build push pull sed deploy
+all: build push pull cp sed deploy
 
 clean:
-	-@kubectl delete -f ./manifest/service.yaml
-	-@kubectl delete -f ./manifest/ingress.yaml
-	-@kubectl delete -f ./manifest/configmap.yaml
-	-@kubectl delete -f ./manifest/controller.yaml
-	-@rm -f ./manifest/service.yaml
-	-@rm -f ./manifest/ingress.yaml
-	-@rm -f ./manifest/configmap.yaml
-	-@rm -f ./manifest/controller.yaml
+	-@kubectl delete -f ./manifest/deploy/.
+	@find ./manifest/deploy -type f -name "*.yaml" | xargs rm -f
 
 refresh:
 	@kubectl delete -f ./manifest/configmap.yaml
