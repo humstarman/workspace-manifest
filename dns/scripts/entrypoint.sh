@@ -1,28 +1,36 @@
 #!/bin/bash
-set -ex
 # 0 set env
 TMP=/var/named/named.localhost
+URL=gmt.me
+NETWORK=192.168.100
+EDGENODE=192.168.100.166
+ID=${EDGENODE##*.}
+TEMP=/tmp/ip.tmp
+[ -f ${TEMP} ] || touch $TEMP
+echo ${NETWORK} | tr "." "\n" > ${TEMP}
+REV=$(tac ${TEMP})
+REV=$(echo -n $REV | tr " " ".")
 # 1 /etc/named.conf
 FILE=/etc/named.conf
 sed -i s?"listen-on port 53 { 127.0.0.1; };"?"listen-on port 53 { any; };"?g $FILE
-sed -i s?"allow-query     { localhost; };"?"allow-query     { any; };"?g $FILE
+sed -i s?"allow-query { localhost; };"?"allow-query { any; };"?g $FILE
 # 2 /etc/named.rfc1912.zones
 FILE=/etc/named.rfc1912.zones
-cat >> $FILE <<"EOF"
-zone "test.com" IN {
-        type master;
-        file "test.com.zone";
-        allow-update { none; };
+cat >> $FILE <<EOF
+zone "${URL}" IN {
+type master;
+file "${URL}.zone";
+allow-update { none; };
 };
  
-zone "100.168.192.in-addr.arpa" IN {
-        type master;
-        file "192.168.100.arpa";
-        allow-update { none; };
+zone "${REV}.in-addr.arpa" IN {
+type master;
+file "${NETWORK}.arpa";
+allow-update { none; };
 };
 EOF
 # 3 /var/named/test.com.zone
-FILE=/var/named/test.com.zone
+FILE=/var/named/${URL}.zone
 cp -p $TMP $FILE
 cat > $FILE <<EOF
 \$TTL 1D
@@ -33,15 +41,13 @@ cat > $FILE <<EOF
 					1W	; expire
 					3H )	; minimum
 	NS	@
-	A 	192.168.100.166	
+	A 	${EDGENODE}	
 	AAAA	::1
-    IN  A   $POD_IP
-node1   IN  A   192.168.100.162
-node2   IN  A   192.168.100.163
-node3   IN  A   192.168.100.164
+ns  IN  A   ${EDGENODE}
+dash   IN  A   ${EDGENODE}
 EOF
 # 4 /var/named/192.168.100.arpa 
-FILE=/var/named/192.168.100.arpa
+FILE=/var/named/${NETWORK}.arpa
 cp -p $TMP $FILE
 cat > $FILE <<EOF
 \$TTL 1D
@@ -52,14 +58,11 @@ cat > $FILE <<EOF
 					1W	; expire
 					3H )	; minimum
 	NS	@
-	A 	192.168.100.166	
+	A 	${EDGENODE}	
 	AAAA	::1
-    PTR localhost.
-ns  IN  A   $POD_IP 
-100 IN  PTR ns.test.com
-161 IN  PTR node1.test.com
-162 IN  PTR node2.test.com
-163 IN  PTR node3.test.com
+PTR localhost.
+ns  IN  A   ${EDGENODE} 
+${ID} IN  PTR dash.${URL}
 EOF
 # 
 SVC=named
