@@ -33,9 +33,9 @@ cat > $FILE <<EOF
 					1W	; expire
 					3H )	; minimum
 	NS	@
-	A	127.0.0.1
+	A 	192.168.100.166	
 	AAAA	::1
-ns  IN  A   $POD_IP
+    IN  A   $POD_IP
 node1   IN  A   192.168.100.162
 node2   IN  A   192.168.100.163
 node3   IN  A   192.168.100.164
@@ -52,7 +52,7 @@ cat > $FILE <<EOF
 					1W	; expire
 					3H )	; minimum
 	NS	@
-	A	127.0.0.1
+	A 	192.168.100.166	
 	AAAA	::1
     PTR localhost.
 ns  IN  A   $POD_IP 

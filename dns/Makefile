@@ -21,12 +21,12 @@ push:
 pull:
 	@ansible ${GROUP} -m shell -a "docker pull ${IMAGE}"
 
-all : build push pull cp sed deploy
+all : build push pull deploy
 
 run:
-	@docker run -d --name ${CONTAINER} --hostname ${CONTAINER} --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --privileged ${IMAGE}
+	@docker run -d --publish 53:53/tcp --publish 53:53/udp --restart=always --name ${CONTAINER} --hostname ${CONTAINER} --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --privileged ${IMAGE}
 
-clean_d:
+clean-d:
 	@docker stop ${CONTAINER}
 	@docker rm ${CONTAINER}
 
