@@ -2,6 +2,7 @@ LOCAL_REGISTRY_IP=10.254.0.50
 LOCAL_REGISTRY_PORT=5000
 NAME=dns
 NAMESPACE=default
+#NAMESPACE=${NAME}
 TAG=v1
 GROUP=k8s
 
@@ -12,6 +13,8 @@ CONTAINER=${NAME}
 PORT=53
 CLUSTER_IP=10.254.0.53
 
+all : build push pull deploy
+
 build:
 	@docker build -t ${IMAGE} .
 
@@ -20,8 +23,6 @@ push:
 
 pull:
 	@ansible ${GROUP} -m shell -a "docker pull ${IMAGE}"
-
-all : build push pull deploy
 
 run:
 	@docker run -d --publish 53:53/tcp --publish 53:53/udp --restart=always --name ${CONTAINER} --hostname ${CONTAINER} --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --privileged ${IMAGE}
@@ -40,10 +41,11 @@ sed:
 	@find ./manifest -type f -name "*.yaml" | xargs sed -i s?"{{.image}}"?"${IMAGE}"?g
 	@find ./manifest -type f -name "*.yaml" | xargs sed -i s?"{{.cluster.ip}}"?"${CLUSTER_IP}"?g
 
-apply:
-	@kubectl create -f ./manifest/.
+check:
+	@[ -z ${NAMESPACE} ] || ./scripts/chk-ns.sh -s ${NAMESPACE} 
 
-deploy: cp sed apply
+deploy: check cp sed
+	@kubectl create -f ./manifest/.
 
 clean:
 	@kubectl delete -f ./manifest/.
@@ -54,3 +56,6 @@ func:
 
 refresh:
 	@./scripts/refresh-entrypoint.sh -p cm2sh
+
+test:
+	@[ -z ${NAMESPACE} ] || ./scripts/chk-ns.sh -s ${NAMESPACE} 
