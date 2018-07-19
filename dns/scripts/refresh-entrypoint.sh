@@ -29,7 +29,7 @@ if [ -z "$2" ]; then
 fi
 }
 chk_var -p $RPATH
-CM=./manifest/configmap.yaml.sed
+CM=./manifest/entrypoint-cm.yaml.sed
 ENTRY=./scripts/entrypoint.sh
 RPATH=$(echo $RPATH | tr '[:lower:]' '[:upper:]')
 if [[ "CM2SH" == "${RPATH}" ]]; then

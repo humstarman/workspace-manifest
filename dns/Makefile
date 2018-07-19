@@ -55,7 +55,7 @@ func:
 	@kubectl exec -it `./scripts/get-pod-name.sh -n ${NAME} -s ${NAMESPACE}` /workspace/entrypoint.sh
 
 refresh:
-	@./scripts/refresh-entrypoint.sh -p cm2sh
+	@./scripts/refresh-entrypoint.sh -p sh2cm
 
 test:
 	@[ -z ${NAMESPACE} ] || ./scripts/chk-ns.sh -s ${NAMESPACE} 

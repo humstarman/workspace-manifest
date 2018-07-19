@@ -28,8 +28,14 @@ spec:
               readOnly: true
             - name: cgroup 
               mountPath: /sys/fs/cgroup 
-            - name: {{.name}}-config 
+              readOnly: true
+            - name: {{.name}}-sh-config 
               mountPath: /workspace
+              readOnly: true
+            - name: {{.name}}-unit-config 
+              mountPath: /etc/systemd/system/dns.service
+              subPath: dns.service
+              readOnly: true
       volumes:
         - name: host-time
           hostPath:
@@ -37,7 +43,10 @@ spec:
         - name: cgroup 
           hostPath:
             path: /sys/fs/cgroup 
-        - name: {{.name}}-config 
+        - name: {{.name}}-sh-config 
           configMap:
-            name: {{.name}}-config
+            name: {{.name}}-sh-config
             defaultMode: 0755
+        - name: {{.name}}-unit-config 
+          configMap:
+            name: {{.name}}-unit-config
