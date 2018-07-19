@@ -38,6 +38,9 @@ pull:
 run: build-d
 	@docker run -d --publish 53:53/tcp --publish 53:53/udp --restart=always --name ${CONTAINER} --hostname ${CONTAINER} --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --privileged ${IMAGE}
 
+entry:
+	@docker exec -it ${CONTAINER} /bin/bash
+
 clean-d:
 	@docker stop ${CONTAINER}
 	@docker rm ${CONTAINER}
@@ -67,6 +70,9 @@ func:
 
 refresh:
 	@./scripts/refresh-entrypoint.sh -p sh2cm
+
+status:
+	@kubectl exec -it `./scripts/get-pod-name.sh -n ${NAME} -s ${NAMESPACE}` -- systemctl status named
 
 test: export IMAGE=${LOCAL_IMAGE}
 test: 

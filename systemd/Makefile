@@ -22,7 +22,10 @@ push:
 run:
 	@docker run -d --name ${CONTAINER} --hostname ${CONTAINER} --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --privileged ${IMAGE}
 
-clean_d:
+entry:
+	@docker exec -it ${CONTAINER} /bin/bash
+
+clean-d:
 	@docker stop ${CONTAINER}
 	@docker rm ${CONTAINER}
 
@@ -40,5 +43,5 @@ deploy: cp sed
 
 clean:
 	@kubectl delete -f ./manifest/.
-	@find ./manifest/deploy -type f -name "*.yaml" | xargs rm -f
+	@find ./manifest -type f -name "*.yaml" | xargs rm -f
 
