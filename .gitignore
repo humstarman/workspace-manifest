@@ -1,3 +1,4 @@
 *.swp
 *.yaml
 tmp.sh
+dns/scripts/dns.service

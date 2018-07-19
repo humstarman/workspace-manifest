@@ -8,11 +8,13 @@ IMAGE=${LOCAL_REGISTRY}/${PROJECT}:${TAG}
 NAME=systemd
 PORT=53
 CONTAINER=systemd
+LOCAL_IMAGE=${PROJECT}:${TAG}
 
 all : build push
 
 build:
 	@docker build -t ${IMAGE} .
+	@docker tag ${IMAGE} ${LOCAL_IMAGE}
 
 push:
 	@docker push ${IMAGE}

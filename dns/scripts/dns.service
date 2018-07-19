@@ -5,7 +5,7 @@ Description=Config and Start Named Service
 Type=oneshot
 ExecStart=/bin/sh \
           -c \
-          "sleep 10 && /workspace/entrypoint.sh"
+          "sleep 10 && /entrypoint.sh"
 
 [Install]
 WantedBy=multi-user.target

@@ -12,10 +12,21 @@ IMAGE=${LOCAL_REGISTRY}/${PROJECT}:${TAG}
 CONTAINER=${NAME}
 PORT=53
 CLUSTER_IP=10.254.0.53
+LOCAL_IMAGE=${PROJECT}:${TAG}
 
 all : build push pull deploy
 
-build:
+dns-cp:
+	@yes | cp ./scripts/dns.service.sed ./scripts/dns.service
+
+dns-sed:
+	@sed -i s?"workspace/"?""?g ./scripts/dns.service
+
+build-d: export IMAGE=${LOCAL_IMAGE}
+build-d: dns-cp dns-sed
+	@docker build -t ${IMAGE} .
+
+build: dns-cp
 	@docker build -t ${IMAGE} .
 
 push:
@@ -24,7 +35,7 @@ push:
 pull:
 	@ansible ${GROUP} -m shell -a "docker pull ${IMAGE}"
 
-run:
+run: build-d
 	@docker run -d --publish 53:53/tcp --publish 53:53/udp --restart=always --name ${CONTAINER} --hostname ${CONTAINER} --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --privileged ${IMAGE}
 
 clean-d:
@@ -57,5 +68,8 @@ func:
 refresh:
 	@./scripts/refresh-entrypoint.sh -p sh2cm
 
-test:
-	@[ -z ${NAMESPACE} ] || ./scripts/chk-ns.sh -s ${NAMESPACE} 
+test: export IMAGE=${LOCAL_IMAGE}
+test: 
+	@yes | cp ./scripts/dns.service.sed ./scripts/dns.service
+	@sed -i s?"workspace/"?""?g ./scripts/dns.service
+	@echo ${IMAGE}
