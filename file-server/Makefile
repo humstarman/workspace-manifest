@@ -10,6 +10,8 @@ IMAGE=$(LOCAL_REGISTRY)/$(NAME):$(TAG)
 SERVICE_IP=10.254.0.21
 SELECTOR=fileserver
 
+all: build push pull deploy 
+
 build:
 	@docker build -t $(LOCAL_REGISTRY)/$(NAME):$(TAG) .
 
@@ -22,9 +24,11 @@ pull:
 run:
 	@docker run -d --network host -v $(SHARED):/mnt --name $(NAME) $(LOCAL_REGISTRY)/$(NAME):$(TAG) /file-server -p=$(PORT)
 
-sed:
+cp:
 	@yes | cp ./manifest/controller.yaml.sed ./manifest/controller.yaml
 	@yes | cp ./manifest/service.yaml.sed ./manifest/service.yaml
+
+sed:
 	@sed -i s?"{{.name}}"?"$(NAME)"?g ./manifest/controller.yaml
 	@sed -i s?"{{.image}}"?"$(IMAGE)"?g ./manifest/controller.yaml
 	@sed -i s?"{{.shared}}"?"$(SHARED)"?g ./manifest/controller.yaml
@@ -32,7 +36,7 @@ sed:
 	@sed -i s?"{{.name}}"?"$(NAME)"?g ./manifest/service.yaml
 	@sed -i s?"{{.service.ip}}"?"$(SERVICE_IP)"?g ./manifest/service.yaml
 
-deploy:
+deploy: cp sed
 	-@kubectl label node $(TARGET_NODE) $(SELECTOR)=true
 	-@kubectl label node $(TARGET_NODE) $(SELECTOR)=true --overwrite
 	@kubectl create -f ./manifest/service.yaml
@@ -47,8 +51,6 @@ clean:
 
 oldclean:
 	@docker stop $(NAME) && docker rm $(NAME)
-
-all: build push pull sed deploy 
 
 oldtest:
 	@[ -f $(SHARED)/$(TEST) ] || touch $(SHARED)/$(TEST)

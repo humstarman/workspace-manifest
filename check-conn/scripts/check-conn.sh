@@ -40,6 +40,6 @@ for i in $(seq -s ' ' $[1+1] $[$N+1]); do
   if ping -c 1 $POD >/dev/null 2>&1; then
     echo "$POD on $HOST is: good"
   else
-    echo "$POD on $HOST is: NOT good"
+    echo "$POD on $HOST is: NOT good !!! "
   fi 
 done

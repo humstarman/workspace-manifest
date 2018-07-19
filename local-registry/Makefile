@@ -6,14 +6,20 @@ REGISTRY_PATH=/var/lib/docker/registry
 LOCAL_REGISTRY=${CLUSTER_IP}:${PORT}
 TMP=tmp
 
+all: run deploy 
+
+link: deploy
+
 check:
 	@./scripts/mk-ansible-hosts.sh -i ${IP} -g ${TMP} -o
 	@ansible ${TMP} -m ping 
 	@./scripts/rm-ansible-group.sh -g ${TMP}
 
-sed:
+cp:
 	@yes | cp ./manifest/service.yaml.sed ./manifest/service.yaml
 	@yes | cp ./manifest/endpoint.yaml.sed ./manifest/endpoint.yaml
+
+sed:
 	@sed -i s?"{{.name}}"?"${NAME}"?g ./manifest/service.yaml
 	@sed -i s?"{{.port}}"?"${PORT}"?g ./manifest/service.yaml
 	@sed -i s?"{{.cluster.ip}}"?"${CLUSTER_IP}"?g ./manifest/service.yaml
@@ -21,11 +27,11 @@ sed:
 	@sed -i s?"{{.ip}}"?"${IP}"?g ./manifest/endpoint.yaml
 	@sed -i s?"{{.port}}"?"${PORT}"?g ./manifest/endpoint.yaml
 
-deploy:
+deploy: cp sed
 	@kubectl create -f ./manifest/service.yaml
 	@kubectl create -f ./manifest/endpoint.yaml
 
-run:
+run: check
 	@./scripts/mk-ansible-hosts.sh -i ${IP} -g ${TMP} -o
 	-@ansible ${TMP} -m shell -a "mkdir -p ${REGISTRY_PATH}"
 	-@ansible ${TMP} -m shell -a "docker run -d -p ${PORT}:5000 --restart=always --name ${NAME} -v ${REGISTRY_PATH}:/var/lib/registry registry" 
@@ -53,9 +59,5 @@ test1:
 	@docker tag busybox ${LOCAL_REGISTRY}/busybox
 	@docker push ${LOCAL_REGISTRY}/busybox
 
-clean_test:
+clean-test:
 	@kubectl delete -f ./test/test-claim.yaml -f ./test/test-pod.yaml
-
-all: check run sed deploy 
-
-link: sed deploy

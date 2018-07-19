@@ -9,13 +9,13 @@ NAME=systemd
 PORT=53
 CONTAINER=systemd
 
+all : build push
+
 build:
 	@docker build -t ${IMAGE} .
 
 push:
 	@docker push ${IMAGE}
-
-all : build push cp sed deploy
 
 run:
 	@docker run -d --name ${CONTAINER} --hostname ${CONTAINER} --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --privileged ${IMAGE}
@@ -33,7 +33,7 @@ sed:
 	@find ./manifest -type f -name "*.yaml" | xargs sed -i s?"{{.port}}"?"${PORT}"?g 
 	@find ./manifest -type f -name "*.yaml" | xargs sed -i s?"{{.image}}"?"${IMAGE}"?g
 
-deploy:
+deploy: cp sed
 	@kubectl create -f ./manifest/.
 
 clean:

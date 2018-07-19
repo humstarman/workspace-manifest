@@ -5,22 +5,24 @@ DS_SUFFIX=ds
 IMAGE=$(IMAGE_NAME):$(TAG)
 DS=$(IMAGE_NAME)-$(DS_SUFFIX)
 
-build:
+all: deploy run clean
+
+cp:
 	@yes | cp ./manifest/daemonset.yaml.sed ./manifest/daemonset.yaml
+
+sed:
 	@sed -i s?"{{.image}}"?"$(IMAGE)"?g ./manifest/daemonset.yaml
 	@sed -i s?"{{.ds}}"?"$(DS)"?g ./manifest/daemonset.yaml
 
-deploy:
+deploy: cp sed
 	@kubectl create -f ./manifest/daemonset.yaml
 
-run:
+run: wait
 	@./scripts/check-conn.sh -d $(DS)
 
-check:
+wait:
 	@./scripts/wait-for.sh -d $(DS)
 
 clean:
 	@kubectl delete -f ./manifest/daemonset.yaml
 	@rm -f ./manifest/daemonset.yaml
-
-all: build deploy check run clean

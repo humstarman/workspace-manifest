@@ -29,6 +29,8 @@ MASTER_IP_3=3
 endif
 
 test:
+all: build push pull deploy
+
 ifeq (${PV},"true")
 	@echo ${ARGS}
 else
@@ -63,15 +65,13 @@ sed:
 	@find ./manifest -type f -name "*.yaml" | xargs sed -i s?"{{.kubectl.config.path}}"?"${KUBECTL_CONFIG_PATH}"?g
 	@find ./manifest -type f -name "*.yaml" | xargs sed -i s?"{{.pv.capacity}}"?"${PV_CAPACITY}"?g
 
-deploy:
+deploy: cp sed 
 	-@kubectl create -f ./manifest/namespace.yaml
 	-@kubectl create -f ./manifest/deploy/service.yaml
 ifeq (${HA_METHOD},"nginx")
 	-@kubectl create -f ./manifest/deploy/configmap.yaml
 endif
 	@kubectl create -f ./manifest/deploy/controller.yaml
-
-all: build push pull cp sed deploy
 
 clean:
 	-@kubectl delete -f ./manifest/deploy/.
@@ -80,3 +80,4 @@ clean:
 refresh:
 	@kubectl delete -f ./manifest/configmap.yaml
 	@kubectl create -f ./manifest/configmap.yaml
+
