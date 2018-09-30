@@ -48,16 +48,26 @@ data:
     
       default_backend ingress-controller
 
+     frontend ingress-controller-80 
+      bind 0.0.0.0:80
+      option forwardfor
+    
+      acl local_net src 192.168.100.0/24
+      acl vaild_ip src -f /etc/haproxy/white.ip.lst
+      acl hbs_ip src 1.189.209.20
+
+      http-request allow if vaild_ip || hbs_ip || local_net
+      http-request deny
+    
+      default_backend ingress-controller
+
     backend ingress-controller 
       balance roundrobin
       option forwardfor
-      #server ingress-controller-node-1 172.31.78.215:80 check
-      #server ingress-controller-node-2 172.31.78.216:80 check
-      #server ingress-controller-node-3 172.31.78.217:80 check
       server ingress-controller-svc 10.254.0.80:80 check
       
     listen stats
-      bind    *:9000
+      bind    *:9002
       mode    http
       stats   enable
       stats   hide-version
@@ -71,6 +81,10 @@ data:
   watch.lst: haproxy.cfg white.ip.lst test.lst
   white.ip.lst: |-
     123.166.205.24
+    43.225.211.115
+    113.0.235.117
+    1.189.59.15
+    43.225.211.50
 kind: ConfigMap
 metadata:
   name: haproxy-config

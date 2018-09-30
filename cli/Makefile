@@ -29,3 +29,7 @@ clean:
 cli: export POD_NAME=`${SCRIPT}/get-pod-name.sh -n ^${NAME} -s ${NAMESPACE}`
 cli:
 	@kubectl exec -it ${POD_NAME} -- /bin/bash
+
+test: OP=delete
+test:
+	@find ${MANIFEST} -type f -name "*.yaml" | xargs -I [] kubectl ${OP} -f [] && rm -f []
