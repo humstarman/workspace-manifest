@@ -80,6 +80,7 @@ data:
     123.166.192.241
   watch.lst: haproxy.cfg white.ip.lst test.lst
   white.ip.lst: |-
+    218.7.221.89
     123.166.205.24
     43.225.211.115
     113.0.235.117
