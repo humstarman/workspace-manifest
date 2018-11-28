@@ -15,36 +15,11 @@ data:
       timeout client  50000
       timeout server  50000
 
-    frontend k8s-http-api
-      bind 0.0.0.0:8087
-      option forwardfor
-   
-      acl local_net src 192.168.100.0/24
-      acl vaild_ip src -f /etc/haproxy/white.ip.lst
-      acl hbs_ip src 1.189.209.20
-
-      http-request allow if vaild_ip || hbs_ip || local_net
-      http-request deny
-
-    default_backend k8s-http-api
-  
-      backend k8s-http-api
-      balance roundrobin
-      option forwardfor
-      server k8s-http-api-1 192.168.100.161:8080 check
-      server k8s-http-api-2 192.168.100.162:8080 check
-      server k8s-http-api-3 192.168.100.163:8080 check
-    
     frontend ingress-controller 
       bind 0.0.0.0:8086
       option forwardfor
     
-      acl local_net src 192.168.100.0/24
-      acl vaild_ip src -f /etc/haproxy/white.ip.lst
-      acl hbs_ip src 1.189.209.20
-
-      http-request allow if vaild_ip || hbs_ip || local_net
-      http-request deny
+      http-request allow
     
       default_backend ingress-controller
 
@@ -52,12 +27,7 @@ data:
       bind 0.0.0.0:80
       option forwardfor
     
-      acl local_net src 192.168.100.0/24
-      acl vaild_ip src -f /etc/haproxy/white.ip.lst
-      acl hbs_ip src 1.189.209.20
-
-      http-request allow if vaild_ip || hbs_ip || local_net
-      http-request deny
+      http-request allow
     
       default_backend ingress-controller
 
@@ -65,16 +35,6 @@ data:
       balance roundrobin
       option forwardfor
       server ingress-controller-svc 10.254.0.80:80 check
-      
-    listen stats
-      bind    *:9002
-      mode    http
-      stats   enable
-      stats   hide-version
-      stats   uri       /stats
-      stats   refresh   30s
-      stats   realm     Haproxy\ Statistics
-      stats   auth      haproxy:haproxy
   test.lst: |-
     1.189.209.20
     123.166.192.241
@@ -86,6 +46,8 @@ data:
     113.0.235.117
     1.189.59.15
     43.225.211.50
+    117.33.49.248
+    43.225.211.37
 kind: ConfigMap
 metadata:
   name: haproxy-config

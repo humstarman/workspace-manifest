@@ -19,7 +19,7 @@ spec:
       restartPolicy: Always
       containers:
         - name: haproxy-node
-          image: 10.254.0.50:5000/haproxy:latest
+          image: gmt.reg.me/test/haproxy:latest
           command:
             - haproxy
             - -f

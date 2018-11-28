@@ -5,6 +5,7 @@ metadata:
   name: {{.ds}}
   labels:
     addonmanager.kubernetes.io/mode: Reconcile
+    app: {{.ds}}
 spec:
   template:
     metadata:
